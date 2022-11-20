@@ -1,0 +1,20 @@
+[package]
+name = "flow-kernel"
+version = "0.1.0"
+edition = "2021"
+
+[build-dependencies]
+chrono = "^0.4"
+
+[dependencies]
+tock-registers = { version = "^0.8", default-features = false, features = ["register_types"], optional = true }
+critical-section = { version = "1.0", features = ["restore-state-u64"] }
+limine = "^0.1.9"
+
+[features]
+default = []
+bsp_qemu = ["tock-registers"]
+
+[target.'cfg(target_arch = "aarch64")'.dependencies]
+aarch64-cpu = "^9.0.0"
+dtb-walker = "^0.1.3"
