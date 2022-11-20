@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Attach GDB to QEMU" type="CLion_Remote" version="1" remoteCommand="localhost:1234" symbolFile="$PROJECT_DIR$/kernel/target/aarch64-unknown-none-softfloat/debug/flow-kernel" sysroot="">
+  <configuration default="false" name="Attach GDB to QEMU" type="CLion_Remote" version="1" remoteCommand="localhost:1234" symbolFile="$PROJECT_DIR$/kernel/target/aarch64-unknown-none/debug/flow-kernel" sysroot="">
     <debugger kind="GDB" isBundled="true" />
     <method v="2" />
   </configuration>

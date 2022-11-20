@@ -7,8 +7,8 @@ pub struct IRQSafeNullLock<T> where T: ?Sized {
     data: UnsafeCell<T>,
 }
 
-unsafe impl<T> Send for IRQSafeNullLock<T> where T: ?Sized + Send {}
-unsafe impl<T> Sync for IRQSafeNullLock<T> where T: ?Sized + Send {}
+unsafe impl<T> Send for IRQSafeNullLock<T> where T: ?Sized {}
+unsafe impl<T> Sync for IRQSafeNullLock<T> where T: ?Sized {}
 
 impl<T> IRQSafeNullLock<T> {
     pub const fn new(data: T) -> Self {

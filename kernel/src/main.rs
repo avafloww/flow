@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 #![no_std]
 #![no_main]
+#![feature(alloc_error_handler)]
 #![feature(asm_const)]
 #![feature(core_intrinsics)]
 #![feature(format_args_nl)] // for print/println
@@ -8,6 +9,9 @@
 #![feature(unchecked_math)] // for timer speediness
 #![feature(const_option)]
 #![feature(int_roundings)]
+#![feature(cell_update)]
+
+extern crate alloc;
 
 use core::sync::atomic::AtomicBool;
 
@@ -24,3 +28,4 @@ mod driver;
 mod time;
 mod util;
 mod exception;
+mod mem;

@@ -21,7 +21,7 @@ endef
 BSP ?= qemu
 
 ifeq ($(BSP),qemu)
-	TARGET = aarch64-unknown-none-softfloat
+	TARGET = aarch64-unknown-none
 	TARGET_SIMPLE=aarch64
 	QEMU_BINARY = qemu-system-aarch64
 	QEMU_MACHINE_TYPE = virt

@@ -1,6 +1,9 @@
+use alloc::boxed::Box;
 // SPDX-License-Identifier: MIT
 use core::borrow::BorrowMut;
+use aarch64_cpu::registers::TTBR1_EL1;
 use limine::LimineBootInfoRequest;
+use tock_registers::interfaces::Readable;
 use crate::{bsp, cpu, driver, EARLY_INIT_COMPLETE, exception, info, println};
 
 static BOOTLOADER_INFO: LimineBootInfoRequest = LimineBootInfoRequest::new(0);
@@ -51,8 +54,6 @@ flow v{}, built at {}"#,
              env!("CARGO_PKG_VERSION"),
              include_str!(concat!(env!("OUT_DIR"), "/timestamp.txt"))
     );
-    println!();
-
     if let Some(bootinfo) = BOOTLOADER_INFO.get_response().get() {
         println!(
             "booted by {} v{}",
@@ -61,6 +62,21 @@ flow v{}, built at {}"#,
         );
     }
 
+    println!();
+
+    // if let Some(mem_map) = MEMORY_MAP.get_response().get() {
+    //     println!("memory map:");
+    //     for entry in mem_map.memmap() {
+    //         println!(
+    //             "  {:>8x} - {:>8x} | {:?}",
+    //             entry.base,
+    //             entry.base + entry.len,
+    //             entry.typ
+    //         );
+    //     }
+    // }
+
+    println!("TTBR1_EL1: {:8x}", TTBR1_EL1.get_baddr());
     // info!("MMU regions:");
     // bsp::mem::mmu::virt_mem_layout().print_layout();
 
@@ -70,11 +86,11 @@ flow v{}, built at {}"#,
     info!("Registered interrupts:");
     exception::asynchronous::irq_manager().print_handlers();
 
-    // info!("Allocating some memory...");
-    // let mut x = Box::new(42);
-    // info!("x = {}", x);
-    // *x = 43;
-    // info!("x = {}", x);
+    info!("Allocating some memory...");
+    let mut x = Box::new(42);
+    info!("x = {}", x);
+    *x = 43;
+    info!("x = {}", x);
 
     info!("Entering infinite idle loop.");
     cpu::wait_forever()
