@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 use core::sync::atomic::{AtomicBool, Ordering};
+
 use crate::{console, driver};
 use crate::bsp::exception::asynchronous::irq_map;
 use crate::bsp::mem::map::mmio;

@@ -1,18 +1,20 @@
-// SPDX-License-Identifier: MIT
-#[cfg(target_arch = "aarch64")]
-#[path = "../arch/aarch64/exception/asynchronous.rs"]
-mod arch_asynchronous;
-
 use core::marker::PhantomData;
+
 use critical_section::{RawRestoreState, set_impl};
-use crate::bsp;
-use crate::exception::{interface, null_irq_manager};
-use crate::sync::{InitStateLock, IRQSafeNullLock};
 
 pub use arch_asynchronous::{
     is_local_irq_masked, local_irq_mask, local_irq_mask_save, local_irq_restore, local_irq_unmask,
 };
+
+use crate::bsp;
+use crate::exception::{interface, null_irq_manager};
+use crate::sync::{InitStateLock, IRQSafeNullLock};
 use crate::sync::interface::ReadWriteEx;
+
+// SPDX-License-Identifier: MIT
+#[cfg(target_arch = "aarch64")]
+#[path = "../arch/aarch64/exception/asynchronous.rs"]
+mod arch_asynchronous;
 
 pub type IRQNumber = bsp::exception::asynchronous::IRQNumber;
 

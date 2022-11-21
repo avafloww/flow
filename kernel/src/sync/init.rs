@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 use core::cell::UnsafeCell;
+
 use crate::{EARLY_INIT_COMPLETE, exception};
 use crate::sync::interface::{Mutex, ReadWriteEx};
 

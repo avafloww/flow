@@ -2,9 +2,11 @@
 use core::num::{NonZeroU128, NonZeroU32, NonZeroU64};
 use core::ops::{Add, Div, Sub};
 use core::time::Duration;
+
 use aarch64_cpu::asm::barrier;
 use aarch64_cpu::registers::CNTPCT_EL0;
 use tock_registers::interfaces::Readable;
+
 use crate::sync::OnceCell;
 use crate::warn;
 

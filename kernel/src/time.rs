@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 use core::time::Duration;
 
+pub(crate) use arch_time::KERNEL_TIMER_DATA;
+pub(crate) use arch_time::KernelTimerData;
+
 #[cfg(target_arch = "aarch64")]
 #[path = "arch/aarch64/time.rs"]
 mod arch_time;
-pub(crate) use arch_time::KERNEL_TIMER_DATA;
-pub(crate) use arch_time::KernelTimerData;
 
 pub struct TimeManager;
 

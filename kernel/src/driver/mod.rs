@@ -1,16 +1,17 @@
+pub use common::*;
+pub use descriptor::*;
+pub use manager::*;
+
 mod common;
 mod manager;
 mod descriptor;
-
-pub use common::*;
-pub use manager::*;
-pub use descriptor::*;
 
 pub mod uart;
 pub mod interrupt;
 
 pub mod interface {
     use core::fmt;
+
     use crate::driver::DriverLoadOrder;
 
     pub trait DeviceDriver {

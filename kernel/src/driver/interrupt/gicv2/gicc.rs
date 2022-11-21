@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 //! GICC Driver - GIC CPU interface.
 
-use crate::exception;
 use tock_registers::{
     interfaces::{Readable, Writeable},
     register_bitfields, register_structs,
     registers::ReadWrite,
 };
+
 use crate::driver::MMIODerefWrapper;
+use crate::exception;
 
 //--------------------------------------------------------------------------------------------------
 // Private Definitions

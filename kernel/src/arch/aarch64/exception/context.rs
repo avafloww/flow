@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 use core::fmt;
 use core::fmt::Formatter;
+
 use aarch64_cpu::registers::{ESR_EL1, FAR_EL1, SPSR_EL1};
 use tock_registers::interfaces::Readable;
 use tock_registers::registers::InMemoryRegister;

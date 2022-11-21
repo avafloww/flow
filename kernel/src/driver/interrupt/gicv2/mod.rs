@@ -73,10 +73,17 @@
 //!           - 00..15 SGIs
 //!           - 16..31 PPIs
 
+use crate::{bsp, cpu, driver, exception, sync};
+//------------------------------------------------------------------------------
+// OS Interface Code
+//------------------------------------------------------------------------------
+use crate::driver::{BoundedUsize, DriverLoadOrder};
+use crate::exception::interface;
+use crate::sync::{InitStateLock, IRQSafeNullLock};
+use crate::sync::interface::ReadWriteEx;
+
 mod gicc;
 mod gicd;
-
-use crate::{bsp, cpu, driver, exception, sync};
 
 //--------------------------------------------------------------------------------------------------
 // Private Definitions
@@ -127,14 +134,6 @@ impl GICv2 {
         }
     }
 }
-
-//------------------------------------------------------------------------------
-// OS Interface Code
-//------------------------------------------------------------------------------
-use crate::driver::{BoundedUsize, DriverLoadOrder};
-use crate::exception::interface;
-use crate::sync::interface::ReadWriteEx;
-use crate::sync::{InitStateLock, IRQSafeNullLock};
 
 impl driver::interface::DeviceDriver for GICv2 {
     type IRQNumberType = IRQNumber;

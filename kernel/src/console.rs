@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 use core::fmt::Arguments;
+
 use crate::console::interface::{All, Statistics, Write};
 use crate::sync::interface::Mutex;
 use crate::sync::IRQSafeNullLock;

@@ -1,7 +1,6 @@
 ENTRY(_start)
 
-__kernel_addr_space_start_virt = 0xFFFFFFFF80000000;
-__kernel_addr_space_end_virt = 0xFFFFFFFFFFFFFFFF;
+__kernel_binary_start = 0xFFFFFFFFFC000000;
 
 PHDRS
 {
@@ -11,10 +10,10 @@ PHDRS
 
 SECTIONS
 {
-    . = __kernel_addr_space_start_virt;
+    . = __kernel_binary_start;
 
-    __code_start = .;
-    .text :
+    __kernel_code_end = .;
+    .text : ALIGN(0x1000)
     {
         KEEP(*(.text._start))
         *(.text._start_arguments)
@@ -22,27 +21,29 @@ SECTIONS
         *(.text*)
     } :segment_code
 
-    . += CONSTANT(MAXPAGESIZE);
-
-    .rodata :
+    .rodata : ALIGN (0x1000)
     {
         *(.rodata*)
     } :segment_code
 
-    . += CONSTANT(MAXPAGESIZE);
-    __code_end_exclusive = .;
+    __kernel_code_end = .;
 
-    .data :
+    . = ALIGN(0x1000);
+
+    __kernel_data_start = .;
+
+    .data : ALIGN (0x1000)
     {
         *(.data*)
     } :segment_data
 
-    .bss :
+    .bss : ALIGN (0x1000)
     {
-        __bss_start = .;
         *(.bss*);
-        __bss_end_exclusive = .;
     } :segment_data
+
+    __kernel_data_end = .;
+    __kernel_binary_end = .;
 
     /DISCARD/ :
     {

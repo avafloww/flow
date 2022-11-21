@@ -10,6 +10,7 @@
 #![feature(const_option)]
 #![feature(int_roundings)]
 #![feature(cell_update)]
+#![feature(const_mut_refs)]
 
 extern crate alloc;
 

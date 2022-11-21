@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 use core::arch::{asm, global_asm};
 use core::num::NonZeroU64;
+
 use aarch64_cpu::asm;
 use aarch64_cpu::registers::{CNTFRQ_EL0, CNTPCT_EL0, MPIDR_EL1};
 use tock_registers::interfaces::{Readable, Writeable};
+
 use crate::time::{KERNEL_TIMER_DATA, KernelTimerData};
 
 pub static BOOT_CORE_ID: u64 = 0;

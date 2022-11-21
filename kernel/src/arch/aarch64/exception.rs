@@ -1,14 +1,17 @@
-// SPDX-License-Identifier: MIT
-#[path = "exception/context.rs"]
-mod context;
-
 use core::arch::global_asm;
 use core::cell::UnsafeCell;
+
 use aarch64_cpu::asm::barrier;
 use aarch64_cpu::registers::{SPSel, VBAR_EL1};
 use tock_registers::interfaces::Writeable;
+
 use context::ExceptionContext;
+
 use crate::exception;
+
+// SPDX-License-Identifier: MIT
+#[path = "exception/context.rs"]
+mod context;
 
 global_asm!(include_str!("exception/exception.S"));
 

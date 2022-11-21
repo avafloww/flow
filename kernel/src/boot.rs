@@ -1,16 +1,24 @@
 use alloc::boxed::Box;
+use alloc::vec;
 // SPDX-License-Identifier: MIT
 use core::borrow::BorrowMut;
+
 use aarch64_cpu::registers::TTBR1_EL1;
 use limine::LimineBootInfoRequest;
 use tock_registers::interfaces::Readable;
-use crate::{bsp, cpu, driver, EARLY_INIT_COMPLETE, exception, info, println};
+
+use crate::{bsp, cpu, driver, EARLY_INIT_COMPLETE, exception, info, mem, println};
+use crate::mem::{MemoryManager, virtual_memory_manager};
 
 static BOOTLOADER_INFO: LimineBootInfoRequest = LimineBootInfoRequest::new(0);
 
 /// # Safety
 /// - MMU & caching must be initialised first.
 pub unsafe fn kernel_init() -> ! {
+    if let Err(x) = virtual_memory_manager().init() {
+        panic!("Failed to init virtual memory manager: {}", x);
+    }
+
     exception::init();
 
     // MMU.write(|mmu| mmu.enable_mmu_and_caching()).unwrap();
@@ -64,21 +72,7 @@ flow v{}, built at {}"#,
 
     println!();
 
-    // if let Some(mem_map) = MEMORY_MAP.get_response().get() {
-    //     println!("memory map:");
-    //     for entry in mem_map.memmap() {
-    //         println!(
-    //             "  {:>8x} - {:>8x} | {:?}",
-    //             entry.base,
-    //             entry.base + entry.len,
-    //             entry.typ
-    //         );
-    //     }
-    // }
-
-    println!("TTBR1_EL1: {:8x}", TTBR1_EL1.get_baddr());
-    // info!("MMU regions:");
-    // bsp::mem::mmu::virt_mem_layout().print_layout();
+    mem::print_physical_memory_map();
 
     info!("Loaded drivers:");
     driver::driver_manager().enumerate();

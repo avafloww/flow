@@ -6,13 +6,22 @@
 //! - <https://github.com/raspberrypi/documentation/files/1888662/BCM2837-ARM-Peripherals.-.Revised.-.V2-1.pdf>
 //! - <https://developer.arm.com/documentation/ddi0183/latest>
 
-use crate::{console, cpu, driver, exception, sync::IRQSafeNullLock};
 use core::fmt;
+
 use tock_registers::{
     interfaces::{Readable, Writeable},
     register_bitfields, register_structs,
     registers::{ReadOnly, ReadWrite, WriteOnly},
 };
+
+use crate::{console, cpu, driver, exception, sync::IRQSafeNullLock};
+//------------------------------------------------------------------------------
+// OS Interface Code
+//------------------------------------------------------------------------------
+use crate::driver::{DriverLoadOrder, MMIODerefWrapper};
+use crate::driver::interrupt::gicv2::IRQNumber;
+use crate::exception::asynchronous::{irq_manager, IRQHandlerDescriptor};
+use crate::sync::interface::Mutex;
 
 //--------------------------------------------------------------------------------------------------
 // Private Definitions
@@ -391,14 +400,6 @@ impl PL011Uart {
         }
     }
 }
-
-//------------------------------------------------------------------------------
-// OS Interface Code
-//------------------------------------------------------------------------------
-use crate::driver::{DriverLoadOrder, MMIODerefWrapper};
-use crate::driver::interrupt::gicv2::IRQNumber;
-use crate::exception::asynchronous::{irq_manager, IRQHandlerDescriptor};
-use crate::sync::interface::Mutex;
 
 impl driver::interface::DeviceDriver for PL011Uart {
     type IRQNumberType = IRQNumber;

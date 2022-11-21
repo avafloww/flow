@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 //! A panic handler that infinitely waits.
 
-use crate::{cpu, println};
 use core::panic::PanicInfo;
+
+use crate::{cpu, println};
 
 /// Stop immediately if called a second time.
 ///

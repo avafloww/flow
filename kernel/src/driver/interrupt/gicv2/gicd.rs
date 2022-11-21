@@ -4,12 +4,18 @@
 //! # Glossary
 //!   - SPI - Shared Peripheral Interrupt.
 
-use crate::sync::IRQSafeNullLock;
 use tock_registers::{
     interfaces::{Readable, Writeable},
     register_bitfields, register_structs,
     registers::{ReadOnly, ReadWrite},
 };
+
+use crate::driver::MMIODerefWrapper;
+//--------------------------------------------------------------------------------------------------
+// Public Code
+//--------------------------------------------------------------------------------------------------
+use crate::sync::interface::Mutex;
+use crate::sync::IRQSafeNullLock;
 
 //--------------------------------------------------------------------------------------------------
 // Private Definitions
@@ -110,12 +116,6 @@ impl SharedRegisters {
         &self.ITARGETSR[0..spi_itargetsr_max_index]
     }
 }
-
-//--------------------------------------------------------------------------------------------------
-// Public Code
-//--------------------------------------------------------------------------------------------------
-use crate::sync::interface::Mutex;
-use crate::driver::MMIODerefWrapper;
 
 impl GICD {
     /// Create an instance.

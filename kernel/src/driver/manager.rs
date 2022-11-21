@@ -1,9 +1,10 @@
 use core::fmt;
-use crate::driver::DriverLoadOrder;
+
 use crate::{info, println, todo_print};
+use crate::driver::DriverLoadOrder;
 use crate::exception::asynchronous::IRQNumber;
+use crate::sync::IRQSafeNullLock;
 use crate::sync::interface::Mutex;
-use crate::sync::{IRQSafeNullLock};
 
 static DRIVER_MANAGER: DriverManager<IRQNumber> = DriverManager::new();
 
