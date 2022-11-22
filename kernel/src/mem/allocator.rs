@@ -22,10 +22,22 @@ fn alloc_error_handler(layout: Layout) -> ! {
     panic!("kernel memory allocation failed: {:?}", layout);
 }
 
+/// Align downwards. Returns the greatest x with alignment `align`
+/// so that x <= addr. The alignment must be a power of 2.
+pub const fn align_down(size: usize, align: usize) -> usize {
+    if align.is_power_of_two() {
+        size & !(align - 1)
+    } else if align == 0 {
+        size
+    } else {
+        panic!("`align` must be a power of 2");
+    }
+}
+
 /// Align the given address upwards to the given alignment.
 ///
 /// Requires that the alignment is a power of two.
-pub fn align_up(addr: usize, align: usize) -> usize {
+pub const fn align_up(addr: usize, align: usize) -> usize {
     (addr + align - 1) & !(align - 1)
 }
 

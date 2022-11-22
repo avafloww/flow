@@ -15,9 +15,7 @@ static BOOTLOADER_INFO: LimineBootInfoRequest = LimineBootInfoRequest::new(0);
 /// # Safety
 /// - MMU & caching must be initialised first.
 pub unsafe fn kernel_init() -> ! {
-    if let Err(x) = virtual_memory_manager().init() {
-        panic!("Failed to init virtual memory manager: {}", x);
-    }
+    virtual_memory_manager().init();
 
     exception::init();
 

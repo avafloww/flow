@@ -1,5 +1,14 @@
 ENTRY(_start)
 
+/* 1968MB kernel heap (RW) */
+__kernel_heap_start = 0xFFFFFFFF80000000;
+__kernel_heap_end = 0xFFFFFFFFFAFFFFFF;
+
+/* 16MB kernel stack (RW) */
+__kernel_stack_start = 0xFFFFFFFFFB000000;
+__kernel_stack_end = 0xFFFFFFFFFBFFFFFF;
+
+/* 64MB kernel code (RX)/data+bss (RW) */
 __kernel_binary_start = 0xFFFFFFFFFC000000;
 
 PHDRS
@@ -12,7 +21,7 @@ SECTIONS
 {
     . = __kernel_binary_start;
 
-    __kernel_code_end = .;
+    __kernel_code_start = .;
     .text : ALIGN(0x1000)
     {
         KEEP(*(.text._start))
