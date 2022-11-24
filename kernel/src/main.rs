@@ -4,9 +4,9 @@
 #![feature(alloc_error_handler)]
 #![feature(asm_const)]
 #![feature(core_intrinsics)]
-#![feature(format_args_nl)] // for print/println
-#![feature(panic_info_message)] // for panic handler
-#![feature(unchecked_math)] // for timer speediness
+#![feature(format_args_nl)]
+#![feature(panic_info_message)]
+#![feature(unchecked_math)]
 #![feature(const_option)]
 #![feature(int_roundings)]
 #![feature(cell_update)]

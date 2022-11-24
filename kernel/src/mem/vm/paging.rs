@@ -8,12 +8,15 @@
 
 use alloc::alloc::{alloc_zeroed, dealloc, handle_alloc_error, Layout};
 use core::arch::asm;
-use core::fmt::{self, Debug, Display, Formatter};
+use core::fmt::{self, Debug, Display, Formatter, LowerHex};
 use core::marker::PhantomData;
-use core::ops::{Add, Range, Sub};
+use core::ops::{Add, Deref, DerefMut, Range, Sub};
 use core::ptr::NonNull;
+use aarch64_cpu::asm::barrier;
+use aarch64_cpu::registers::PAR_EL1;
 
 use bitflags::bitflags;
+use tock_registers::interfaces::{Readable, Writeable};
 use crate::mem::{direct_map_virt_offset, kernel_heap_start};
 use crate::mem::allocator::{align_down, align_up};
 
@@ -112,6 +115,12 @@ pub struct PhysicalMemoryRegion(Range<PhysicalAddress>);
 /// table.
 #[derive(Copy, Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub struct PhysicalAddress(pub usize);
+
+impl Into<VirtualAddress> for PhysicalAddress {
+    fn into(self) -> VirtualAddress {
+        VirtualAddress(self.0 + direct_map_virt_offset())
+    }
+}
 
 impl Display for PhysicalAddress {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
@@ -323,20 +332,20 @@ impl RootPageTable {
             // becomes invalid.
             match self.va_range() {
                 VaRange::Lower => asm!(
-                "mrs   {previous_ttbr}, ttbr0_el1",
-                "msr   ttbr0_el1, {ttbrval}",
-                "isb",
-                ttbrval = in(reg) self.to_physical().0 | (self.asid << 48),
-                previous_ttbr = out(reg) previous_ttbr,
-                options(preserves_flags),
+                    "mrs   {previous_ttbr}, ttbr0_el1",
+                    "msr   ttbr0_el1, {ttbrval}",
+                    "isb",
+                    ttbrval = in(reg) self.to_physical().0 | (self.asid << 48),
+                    previous_ttbr = out(reg) previous_ttbr,
+                    options(preserves_flags),
                 ),
                 VaRange::Upper => asm!(
-                "mrs   {previous_ttbr}, ttbr1_el1",
-                "msr   ttbr1_el1, {ttbrval}",
-                "isb",
-                ttbrval = in(reg) self.to_physical().0 | (self.asid << 48),
-                previous_ttbr = out(reg) previous_ttbr,
-                options(preserves_flags),
+                    "mrs   {previous_ttbr}, ttbr1_el1",
+                    "msr   ttbr1_el1, {ttbrval}",
+                    "isb",
+                    ttbrval = in(reg) self.to_physical().0 | (self.asid << 48),
+                    previous_ttbr = out(reg) previous_ttbr,
+                    options(preserves_flags),
                 ),
             }
         }
@@ -356,27 +365,31 @@ impl RootPageTable {
             // have been valid.
             match self.va_range() {
                 VaRange::Lower => asm!(
-                "msr   ttbr0_el1, {ttbrval}",
-                "isb",
-                "tlbi  aside1, {asid}",
-                "dsb   nsh",
-                "isb",
-                asid = in(reg) self.asid << 48,
-                ttbrval = in(reg) self.previous_ttbr.unwrap(),
-                options(preserves_flags),
+                    "msr   ttbr0_el1, {ttbrval}",
+                    "isb",
+                    "tlbi  aside1, {asid}",
+                    "dsb   nsh",
+                    "isb",
+                    asid = in(reg) self.asid << 48,
+                    ttbrval = in(reg) self.previous_ttbr.unwrap(),
+                    options(preserves_flags),
                 ),
                 VaRange::Upper => asm!(
-                "msr   ttbr1_el1, {ttbrval}",
-                "isb",
-                "tlbi  aside1, {asid}",
-                "dsb   nsh",
-                "isb",
-                asid = in(reg) self.asid << 48,
-                ttbrval = in(reg) self.previous_ttbr.unwrap(),
-                options(preserves_flags),
+                    "msr   ttbr1_el1, {ttbrval}",
+                    "isb",
+                    "tlbi  aside1, {asid}",
+                    "dsb   nsh",
+                    "isb",
+                    asid = in(reg) self.asid << 48,
+                    ttbrval = in(reg) self.previous_ttbr.unwrap(),
+                    options(preserves_flags),
                 ),
             }
         }
+        self.previous_ttbr = None;
+    }
+
+    pub(crate) fn invalidate_previous_ttbr(&mut self) {
         self.previous_ttbr = None;
     }
 }
@@ -474,6 +487,16 @@ impl PageTable {
         }
     }
 
+    #[inline(always)]
+    fn get_mapped_table(&self) -> NonNull<RawPageTable> {
+        let address = self.table.as_ptr() as usize;
+        if address < direct_map_virt_offset() {
+            NonNull::new((address + direct_map_virt_offset()) as *mut RawPageTable).unwrap()
+        } else {
+            self.table
+        }
+    }
+
     /// Returns a mutable reference to the descriptor corresponding to a given virtual address.
     fn get_entry_mut(&mut self, va: VirtualAddress) -> &mut Descriptor {
         let shift = PAGE_SHIFT + (LEAF_LEVEL - self.level) * BITS_PER_LEVEL;
@@ -481,7 +504,7 @@ impl PageTable {
         // Safe because we know that the pointer is properly aligned, dereferenced and initialised,
         // and nothing else can access the page table while we hold a mutable reference to the
         // PageTable (assuming it is not currently active).
-        let table = unsafe { self.table.as_mut() };
+        let table = unsafe { self.get_mapped_table().as_mut() };
         &mut table.entries[index]
     }
 
@@ -545,7 +568,7 @@ impl PageTable {
     ) -> Result<(), fmt::Error> {
         // Safe because we know that the pointer is aligned, initialised and dereferencable, and the
         // PageTable won't be mutated while we are using it.
-        let table = unsafe { self.table.as_ref() };
+        let table = unsafe { self.get_mapped_table().as_ref() };
 
         let mut i = 0;
         while i < table.entries.len() {
@@ -575,7 +598,7 @@ impl PageTable {
     fn free(&mut self) {
         // Safe because we know that the pointer is aligned, initialised and dereferencable, and the
         // PageTable won't be mutated while we are freeing it.
-        let table = unsafe { self.table.as_ref() };
+        let table = unsafe { self.get_mapped_table().as_ref() };
         for entry in table.entries {
             if let Some(mut subtable) = entry.subtable(self.level) {
                 // Safe because the subtable was allocated by `PageTableWithLevel::new` with the
@@ -587,7 +610,7 @@ impl PageTable {
         // allocator and appropriate layout.
         unsafe {
             // Actually free the memory used by the `PageTable`.
-            deallocate(self.table);
+            deallocate(self.get_mapped_table());
         }
     }
 }
@@ -613,12 +636,17 @@ impl RawPageTable {
     ///       This will need to be changed before we start allocating to the kernel heap range.
     pub fn get_physical_base(&self) -> PhysicalAddress {
         let virtual_address = self as *const _ as usize;
-        assert!(
-            virtual_address >= direct_map_virt_offset() && virtual_address < kernel_heap_start(),
-            "RawPageTable is allocated outside of the direct mapping range!"
-        );
+        if virtual_address >= direct_map_virt_offset() && virtual_address < kernel_heap_start() {
+            PhysicalAddress(virtual_address - direct_map_virt_offset())
+        } else {
+            unsafe {
+                // aarch64 is a based architecture, thank you for saving me from writing
+                // page table reverse-parsing code :)
+                asm!("at s1e1r, {}", in(reg) virtual_address);
+            }
 
-        PhysicalAddress(virtual_address - direct_map_virt_offset())
+            PhysicalAddress((PAR_EL1.read(PAR_EL1::PA) << PAGE_SHIFT) as usize)
+        }
     }
 }
 
@@ -683,7 +711,7 @@ impl Descriptor {
 
     // todo
     fn physical_to_virtual(&self, output_address: PhysicalAddress) -> NonNull<RawPageTable> {
-        if let Some(ptr) = NonNull::new(output_address.0 as *mut RawPageTable) {
+        if let Some(ptr) = NonNull::new((direct_map_virt_offset() + output_address.0) as *mut RawPageTable) {
             ptr
         } else {
             panic!("Invalid physical address: {:?}", output_address);

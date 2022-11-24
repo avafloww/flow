@@ -13,7 +13,7 @@ static INTERRUPT_CONTROLLER: GICv2 = unsafe {
 };
 
 static PL011_UART: PL011Uart = unsafe {
-    PL011Uart::new(0x0900_0000)
+    PL011Uart::new(mmio::PL011_UART_START)
 };
 
 fn post_init_uart() -> Result<(), &'static str> {

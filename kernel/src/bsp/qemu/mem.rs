@@ -5,22 +5,20 @@
 //--------------------------------------------------------------------------------------------------
 #[rustfmt::skip]
 pub(super) mod map {
+    // todo: this is garbage, but temporary because of dt discovery coming soon
+    pub const DIRECT_MAP_OFFSET: usize = 0xFFFF_8000_0000_0000;
+
     /// The inclusive end address of the memory map.
     ///
     /// End address + 1 must be power of two.
-    pub const END_INCLUSIVE:       usize = 0xFFFF_FFFF;
-
-    pub const UART_OFFSET:         usize = 0x0900_0000;
 
     /// Physical devices.
     pub mod mmio {
         use super::*;
 
-        pub const START:            usize =         0x0000_0000;
-        pub const PL011_UART_START: usize = START + UART_OFFSET;
-        pub const GICD_START:       usize =         0x0800_0000;
-        pub const GICC_START:       usize =         0x0801_0000;
-        pub const END_INCLUSIVE:    usize =         0x3FFF_FFFF;
+        pub const PL011_UART_START: usize =         0x0900_0000 + DIRECT_MAP_OFFSET;
+        pub const GICD_START:       usize =         0x0800_0000 + DIRECT_MAP_OFFSET;
+        pub const GICC_START:       usize =         0x0801_0000 + DIRECT_MAP_OFFSET;
     }
 }
 

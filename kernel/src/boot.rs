@@ -1,11 +1,6 @@
-use alloc::boxed::Box;
-use alloc::vec;
 // SPDX-License-Identifier: MIT
-use core::borrow::BorrowMut;
-
-use aarch64_cpu::registers::TTBR1_EL1;
+use alloc::boxed::Box;
 use limine::LimineBootInfoRequest;
-use tock_registers::interfaces::Readable;
 
 use crate::{bsp, cpu, driver, EARLY_INIT_COMPLETE, exception, info, mem, println};
 use crate::mem::{MemoryManager, virtual_memory_manager};
@@ -14,15 +9,11 @@ static BOOTLOADER_INFO: LimineBootInfoRequest = LimineBootInfoRequest::new(0);
 
 /// # Safety
 /// - MMU & caching must be initialised first.
-pub unsafe fn kernel_init() -> ! {
-    virtual_memory_manager().init();
-
+pub unsafe fn kernel_init(base_sp: usize) -> ! {
+    // set up exception handling, since we're about to invalidate the lower half of the address space
     exception::init();
 
-    // MMU.write(|mmu| mmu.enable_mmu_and_caching()).unwrap();
-    // if let Err(string) = MMU.enable_mmu_and_caching() {
-    //     panic!("MMU enable error: {}", string);
-    // }
+    virtual_memory_manager().init(base_sp);
 
     // init the bsp drivers
     if let Err(x) = bsp::driver::init() {
