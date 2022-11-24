@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 use core::time::Duration;
 
-pub(crate) use arch_time::KERNEL_TIMER_DATA;
 pub(crate) use arch_time::KernelTimerData;
+pub(crate) use arch_time::KERNEL_TIMER_DATA;
 
 #[cfg(target_arch = "aarch64")]
 #[path = "arch/aarch64/time.rs"]
@@ -16,6 +16,7 @@ pub fn time_manager() -> &'static TimeManager {
     &TIME_MANAGER
 }
 
+#[allow(unused)]
 impl TimeManager {
     pub const fn new() -> Self {
         Self

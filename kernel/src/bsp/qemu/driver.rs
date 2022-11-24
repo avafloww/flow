@@ -1,20 +1,16 @@
 // SPDX-License-Identifier: MIT
 use core::sync::atomic::{AtomicBool, Ordering};
 
-use crate::{console, driver};
 use crate::bsp::exception::asynchronous::irq_map;
 use crate::bsp::mem::map::mmio;
 use crate::driver::interrupt::gicv2::GICv2;
 use crate::driver::uart::PL011Uart;
-use crate::exception::asynchronous::IRQNumber;
 
-static INTERRUPT_CONTROLLER: GICv2 = unsafe {
-    GICv2::new(mmio::GICD_START, mmio::GICC_START)
-};
+use crate::{console, driver};
 
-static PL011_UART: PL011Uart = unsafe {
-    PL011Uart::new(mmio::PL011_UART_START)
-};
+static INTERRUPT_CONTROLLER: GICv2 = unsafe { GICv2::new(mmio::GICD_START, mmio::GICC_START) };
+
+static PL011_UART: PL011Uart = unsafe { PL011Uart::new(mmio::PL011_UART_START) };
 
 fn post_init_uart() -> Result<(), &'static str> {
     console::register_console(&PL011_UART);

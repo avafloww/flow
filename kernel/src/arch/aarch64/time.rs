@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-use core::num::{NonZeroU128, NonZeroU32, NonZeroU64};
+use core::num::{NonZeroU128, NonZeroU64};
 use core::ops::{Add, Div, Sub};
 use core::time::Duration;
 
@@ -24,10 +24,7 @@ pub struct KernelTimerData {
 }
 
 impl KernelTimerData {
-    pub const fn new(
-        arch_timer_counter_frequency: u64,
-        kernel_boot_time: u64,
-    ) -> Self {
+    pub const fn new(arch_timer_counter_frequency: u64, kernel_boot_time: u64) -> Self {
         Self {
             arch_timer_counter_frequency: NonZeroU64::new(arch_timer_counter_frequency).unwrap(),
             kernel_boot_time: GenericTimerCounterValue(kernel_boot_time),
@@ -94,12 +91,14 @@ impl TryFrom<Duration> for GenericTimerCounterValue {
             return Err("duration too large");
         }
 
-        let freq: u128 = <u64 as Into<u128>>::into(u64::from(KERNEL_TIMER_DATA.arch_timer_counter_frequency));
+        let freq: u128 =
+            <u64 as Into<u128>>::into(u64::from(KERNEL_TIMER_DATA.arch_timer_counter_frequency));
         let duration: u128 = value.as_nanos();
 
         // This is safe, because frequency can't exceed u32::MAX, and (Duration::MAX.as_nanos() * u32::MAX)
         // is less than u128::MAX.
-        let counter_value = unsafe { duration.unchecked_mul(freq) }.div(NonZeroU128::from(NANOSEC_PER_SEC));
+        let counter_value =
+            unsafe { duration.unchecked_mul(freq) }.div(NonZeroU128::from(NANOSEC_PER_SEC));
 
         // Cast to u64, since we're <= max_duration() already.
         Ok(GenericTimerCounterValue(counter_value as u64))
@@ -137,7 +136,7 @@ pub fn spin_for(duration: Duration) {
             warn!("spin_for: {}", msg);
             return;
         }
-        Ok(val) => val
+        Ok(val) => val,
     };
     let target = start + delta;
 

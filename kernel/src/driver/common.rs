@@ -1,6 +1,6 @@
-use core::{fmt, ops};
 use core::fmt::Formatter;
 use core::marker::PhantomData;
+use core::{fmt, ops};
 
 /// A wrapper for usize with an integrated range bound check.
 #[derive(Copy, Clone)]

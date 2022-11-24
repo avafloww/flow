@@ -1,10 +1,10 @@
 use core::fmt;
 
-use crate::{info, println, todo_print};
 use crate::driver::DriverLoadOrder;
 use crate::exception::asynchronous::IRQNumber;
-use crate::sync::IRQSafeNullLock;
 use crate::sync::interface::Mutex;
+use crate::sync::IRQSafeNullLock;
+use crate::{info, println, todo_print};
 
 static DRIVER_MANAGER: DriverManager<IRQNumber> = DriverManager::new();
 
@@ -17,8 +17,11 @@ const MAX_DRIVERS: usize = 32;
 pub type DeviceDriverPostInitCallback = unsafe fn() -> Result<(), &'static str>;
 
 #[derive(Copy, Clone)]
-pub struct DeviceDriverDescriptor<T> where T: 'static {
-    device_driver: &'static (dyn super::interface::DeviceDriver<IRQNumberType=T> + Sync),
+pub struct DeviceDriverDescriptor<T>
+where
+    T: 'static,
+{
+    device_driver: &'static (dyn super::interface::DeviceDriver<IRQNumberType = T> + Sync),
     post_init_callback: Option<DeviceDriverPostInitCallback>,
     irq_number: Option<&'static T>,
     init_complete: bool,
@@ -26,7 +29,7 @@ pub struct DeviceDriverDescriptor<T> where T: 'static {
 
 impl<T> DeviceDriverDescriptor<T> {
     pub const fn new(
-        device_driver: &'static (dyn super::interface::DeviceDriver<IRQNumberType=T> + Sync),
+        device_driver: &'static (dyn super::interface::DeviceDriver<IRQNumberType = T> + Sync),
         post_init_callback: Option<DeviceDriverPostInitCallback>,
         irq_number: Option<&'static T>,
     ) -> Self {
@@ -39,16 +42,25 @@ impl<T> DeviceDriverDescriptor<T> {
     }
 }
 
-struct DriverManagerInner<T> where T: 'static {
+struct DriverManagerInner<T>
+where
+    T: 'static,
+{
     next_index: usize,
     descriptors: [Option<DeviceDriverDescriptor<T>>; MAX_DRIVERS],
 }
 
-pub struct DriverManager<T> where T: 'static {
+pub struct DriverManager<T>
+where
+    T: 'static,
+{
     inner: IRQSafeNullLock<DriverManagerInner<T>>,
 }
 
-impl<T> DriverManagerInner<T> where T: 'static + Copy {
+impl<T> DriverManagerInner<T>
+where
+    T: 'static + Copy,
+{
     pub const fn new() -> Self {
         Self {
             next_index: 0,
@@ -57,7 +69,10 @@ impl<T> DriverManagerInner<T> where T: 'static + Copy {
     }
 }
 
-impl<T> DriverManager<T> where T: fmt::Display + Copy {
+impl<T> DriverManager<T>
+where
+    T: fmt::Display + Copy,
+{
     pub const fn new() -> Self {
         Self {
             inner: IRQSafeNullLock::new(DriverManagerInner::new()),
@@ -86,12 +101,16 @@ impl<T> DriverManager<T> where T: fmt::Display + Copy {
 
     pub fn init_early(&self) {
         self.probe_devices(DriverLoadOrder::Early);
-        unsafe { self.init_devices(DriverLoadOrder::Early); }
+        unsafe {
+            self.init_devices(DriverLoadOrder::Early);
+        }
     }
 
     pub fn init_normal(&self) {
         self.probe_devices(DriverLoadOrder::Normal);
-        unsafe { self.init_devices(DriverLoadOrder::Normal); }
+        unsafe {
+            self.init_devices(DriverLoadOrder::Normal);
+        }
     }
 
     unsafe fn init_devices(&self, load_order: DriverLoadOrder) {
@@ -101,12 +120,20 @@ impl<T> DriverManager<T> where T: fmt::Display + Copy {
             }
 
             if let Err(x) = descriptor.device_driver.init(descriptor.irq_number) {
-                panic!("Failed to init driver: {}: {}", descriptor.device_driver.compatible(), x);
+                panic!(
+                    "Failed to init driver: {}: {}",
+                    descriptor.device_driver.compatible(),
+                    x
+                );
             }
 
             if let Some(callback) = descriptor.post_init_callback {
                 if let Err(x) = callback() {
-                    panic!("Error during driver post-init callback: {}: {}", descriptor.device_driver.compatible(), x);
+                    panic!(
+                        "Error during driver post-init callback: {}: {}",
+                        descriptor.device_driver.compatible(),
+                        x
+                    );
                 }
             }
 
@@ -139,13 +166,21 @@ impl<T> DriverManager<T> where T: fmt::Display + Copy {
 
     fn for_each<'a>(&'a self, f: impl FnMut(&'a DeviceDriverDescriptor<T>)) {
         self.inner.lock(|inner| {
-            inner.descriptors.iter().filter_map(|x| x.as_ref()).for_each(f)
+            inner
+                .descriptors
+                .iter()
+                .filter_map(|x| x.as_ref())
+                .for_each(f)
         })
     }
 
     pub fn for_each_mut<'a>(&'a self, f: impl FnMut(&'a mut DeviceDriverDescriptor<T>)) {
         self.inner.lock(|inner| {
-            inner.descriptors.iter_mut().filter_map(|x| x.as_mut()).for_each(f)
+            inner
+                .descriptors
+                .iter_mut()
+                .filter_map(|x| x.as_mut())
+                .for_each(f)
         })
     }
 }

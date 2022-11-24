@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 
-use core::alloc::{GlobalAlloc, Layout};
-use core::cell::Cell;
 use crate::mem::allocator::align_up;
 use crate::mem::vm::paging::VirtualAddress;
+use core::alloc::{GlobalAlloc, Layout};
+use core::cell::Cell;
 
 //--------------------------------------------------------------------------------------------------
 // Public definitions

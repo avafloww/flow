@@ -18,15 +18,15 @@ use core::sync::atomic::AtomicBool;
 
 pub static EARLY_INIT_COMPLETE: AtomicBool = AtomicBool::new(false);
 
+mod boot;
 mod bsp;
 mod console;
 mod cpu;
-mod panic;
-mod sync;
-mod print;
-mod boot;
 mod driver;
-mod time;
-mod util;
 mod exception;
 mod mem;
+mod panic;
+mod print;
+mod sync;
+mod time;
+mod util;

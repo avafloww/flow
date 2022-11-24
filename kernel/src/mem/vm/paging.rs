@@ -6,19 +6,18 @@
 //! Generic aarch64 page table manipulation functionality which doesn't assume anything about how
 //! addresses are mapped.
 
+use aarch64_cpu::registers::PAR_EL1;
 use alloc::alloc::{alloc_zeroed, dealloc, handle_alloc_error, Layout};
 use core::arch::asm;
-use core::fmt::{self, Debug, Display, Formatter, LowerHex};
-use core::marker::PhantomData;
-use core::ops::{Add, Deref, DerefMut, Range, Sub};
-use core::ptr::NonNull;
-use aarch64_cpu::asm::barrier;
-use aarch64_cpu::registers::PAR_EL1;
+use core::fmt::{self, Debug, Display, Formatter};
 
-use bitflags::bitflags;
-use tock_registers::interfaces::{Readable, Writeable};
-use crate::mem::{direct_map_virt_offset, kernel_heap_start};
+use core::ops::{Add, Range, Sub};
+use core::ptr::NonNull;
+
 use crate::mem::allocator::{align_down, align_up};
+use crate::mem::{direct_map_virt_offset, kernel_heap_start};
+use bitflags::bitflags;
+use tock_registers::interfaces::Readable;
 
 use crate::mem::vm::MapError;
 
@@ -116,9 +115,9 @@ pub struct PhysicalMemoryRegion(Range<PhysicalAddress>);
 #[derive(Copy, Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub struct PhysicalAddress(pub usize);
 
-impl Into<VirtualAddress> for PhysicalAddress {
-    fn into(self) -> VirtualAddress {
-        VirtualAddress(self.0 + direct_map_virt_offset())
+impl From<PhysicalAddress> for VirtualAddress {
+    fn from(pa: PhysicalAddress) -> Self {
+        VirtualAddress(pa.0 + direct_map_virt_offset())
     }
 }
 
@@ -208,11 +207,6 @@ impl VirtualMemoryRegion {
     /// Returns the length of the memory region in bytes.
     pub const fn len(&self) -> usize {
         self.0.end.0 - self.0.start.0
-    }
-
-    /// Returns whether the memory region contains exactly 0 bytes.
-    pub const fn is_empty(&self) -> bool {
-        self.0.start.0 == self.0.end.0
     }
 }
 
@@ -476,15 +470,12 @@ impl PageTable {
         let table = RawPageTable::new();
         (
             Self::from_pointer(table, level),
-            unsafe { table.as_ref() }.get_physical_base()
+            unsafe { table.as_ref() }.get_physical_base(),
         )
     }
 
     fn from_pointer(table: NonNull<RawPageTable>, level: usize) -> Self {
-        Self {
-            table,
-            level,
-        }
+        Self { table, level }
     }
 
     #[inline(always)]
@@ -546,11 +537,7 @@ impl PageTable {
                         // Recreate the entire block in the newly added table.
                         let a = align_down(chunk.0.start.0, granularity);
                         let b = align_up(chunk.0.end.0, granularity);
-                        subtable.map_range(
-                            &VirtualMemoryRegion::new(a, b),
-                            old_pa,
-                            old_flags,
-                        );
+                        subtable.map_range(&VirtualMemoryRegion::new(a, b), old_pa, old_flags);
                     }
                     entry.set(subtable_pa, Attributes::TABLE_OR_PAGE);
                     subtable
@@ -561,11 +548,7 @@ impl PageTable {
         }
     }
 
-    fn fmt_indented(
-        &self,
-        f: &mut Formatter,
-        indentation: usize,
-    ) -> Result<(), fmt::Error> {
+    fn fmt_indented(&self, f: &mut Formatter, indentation: usize) -> Result<(), fmt::Error> {
         // Safe because we know that the pointer is aligned, initialised and dereferencable, and the
         // PageTable won't be mutated while we are using it.
         let table = unsafe { self.get_mapped_table().as_ref() };
@@ -631,9 +614,6 @@ impl RawPageTable {
     }
 
     /// Returns the physical base address of this page table.
-    ///
-    /// TODO: This relies on the allocator returning an address within the direct mapping range.
-    ///       This will need to be changed before we start allocating to the kernel heap range.
     pub fn get_physical_base(&self) -> PhysicalAddress {
         let virtual_address = self as *const _ as usize;
         if virtual_address >= direct_map_virt_offset() && virtual_address < kernel_heap_start() {
@@ -696,10 +676,7 @@ impl Descriptor {
         self.0 = pa.0 | (flags | Attributes::VALID).bits();
     }
 
-    fn subtable(
-        &self,
-        level: usize,
-    ) -> Option<PageTable> {
+    fn subtable(&self, level: usize) -> Option<PageTable> {
         if level < LEAF_LEVEL && self.is_table_or_page() {
             if let Some(output_address) = self.output_address() {
                 let table = self.physical_to_virtual(output_address);
@@ -711,7 +688,9 @@ impl Descriptor {
 
     // todo
     fn physical_to_virtual(&self, output_address: PhysicalAddress) -> NonNull<RawPageTable> {
-        if let Some(ptr) = NonNull::new((direct_map_virt_offset() + output_address.0) as *mut RawPageTable) {
+        if let Some(ptr) =
+            NonNull::new((direct_map_virt_offset() + output_address.0) as *mut RawPageTable)
+        {
             ptr
         } else {
             panic!("Invalid physical address: {:?}", output_address);
@@ -764,18 +743,14 @@ pub(crate) const fn is_aligned(value: usize, alignment: usize) -> bool {
 // Public definitions
 //--------------------------------------------------------------------------------------------------
 
-
 //--------------------------------------------------------------------------------------------------
 // Public code
 //--------------------------------------------------------------------------------------------------
-
 
 //--------------------------------------------------------------------------------------------------
 // Private definitions
 //--------------------------------------------------------------------------------------------------
 
-
 //--------------------------------------------------------------------------------------------------
 // Private code
 //--------------------------------------------------------------------------------------------------
-

@@ -1,23 +1,21 @@
 // SPDX-License-Identifier: MIT
 
 use core::alloc::{GlobalAlloc, Layout};
-use core::cell::Cell;
+
 use core::intrinsics::unlikely;
-use core::sync::atomic::{AtomicBool, Ordering};
+use core::sync::atomic::Ordering;
 
-use limine::{LimineMemmapEntry, LimineMemoryMapEntryType, NonNullPtr};
-
-use crate::{EARLY_INIT_COMPLETE, info, mem};
-use crate::mem::{MemoryManager, virtual_memory_manager, VMM};
 use crate::mem::allocator::bump::BumpAllocator;
 use crate::mem::allocator::linked_list::LinkedListAllocator;
-use crate::mem::allocator::physical_page::PhysicalPageAllocator;
-use crate::mem::vm::paging::{PAGE_SIZE, VirtualAddress};
-use crate::sync::interface::{Mutex, ReadWriteEx};
-use crate::sync::IRQSafeNullLock;
 
-pub mod linked_list;
+use crate::mem::vm::paging::VirtualAddress;
+use crate::mem::{virtual_memory_manager, MemoryManager};
+use crate::sync::interface::Mutex;
+use crate::sync::IRQSafeNullLock;
+use crate::EARLY_INIT_COMPLETE;
+
 pub mod bump;
+pub mod linked_list;
 
 pub mod physical_page;
 
@@ -52,7 +50,8 @@ pub const fn align_up(addr: usize, align: usize) -> usize {
 // Private definitions
 //--------------------------------------------------------------------------------------------------
 #[global_allocator]
-pub(crate) static GLOBAL_ALLOCATOR: IRQSafeNullLock<KernelAllocator> = IRQSafeNullLock::new(KernelAllocator::new());
+pub(crate) static GLOBAL_ALLOCATOR: IRQSafeNullLock<KernelAllocator> =
+    IRQSafeNullLock::new(KernelAllocator::new());
 
 pub(crate) struct KernelAllocator {
     boot_allocator: BumpAllocator,
@@ -76,8 +75,8 @@ unsafe impl GlobalAlloc for IRQSafeNullLock<KernelAllocator> {
 
                 // if that fails, ask vmm for additional memory
                 // take additional memory in pages
-                let (alloc_start, size)
-                    = virtual_memory_manager().kernel_alloc(layout.pad_to_align().size());
+                let (alloc_start, size) =
+                    virtual_memory_manager().kernel_alloc(layout.pad_to_align().size());
 
                 // add the new region to the allocator
                 alloc.main_allocator.add_heap_region(alloc_start, size);
@@ -119,7 +118,11 @@ impl KernelAllocator {
         self.main_allocator.add_heap_region(heap_start, heap_size);
     }
 
-    pub(crate) unsafe fn init_boot_allocator(&mut self, start: VirtualAddress, end: VirtualAddress) {
+    pub(crate) unsafe fn init_boot_allocator(
+        &mut self,
+        start: VirtualAddress,
+        end: VirtualAddress,
+    ) {
         self.boot_allocator.init(start, end);
     }
 

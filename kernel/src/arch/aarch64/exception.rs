@@ -2,7 +2,7 @@ use core::arch::global_asm;
 use core::cell::UnsafeCell;
 
 use aarch64_cpu::asm::barrier;
-use aarch64_cpu::registers::{SPSel, VBAR_EL1};
+use aarch64_cpu::registers::VBAR_EL1;
 use tock_registers::interfaces::Writeable;
 
 use context::ExceptionContext;
@@ -34,7 +34,6 @@ pub unsafe fn init() {
     exception::asynchronous::setup_critical_section_handler();
 }
 
-
 fn default_exception_handler(exc: &ExceptionContext) {
     panic!("Unhandled CPU exception occurred!\n\n{}", exc);
 }
@@ -62,7 +61,7 @@ extern "C" fn eh_celx_sync(exc: &mut ExceptionContext) {
 }
 
 #[no_mangle]
-extern "C" fn eh_celx_irq(exc: &mut ExceptionContext) {
+extern "C" fn eh_celx_irq(_exc: &mut ExceptionContext) {
     let token = unsafe { &exception::asynchronous::CriticalSection::new() };
     exception::asynchronous::irq_manager().handle_pending_irqs(token);
 }

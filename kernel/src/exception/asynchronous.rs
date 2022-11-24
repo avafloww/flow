@@ -1,6 +1,6 @@
 use core::marker::PhantomData;
 
-use critical_section::{RawRestoreState, set_impl};
+use critical_section::{set_impl, RawRestoreState};
 
 pub use arch_asynchronous::{
     is_local_irq_masked, local_irq_mask, local_irq_mask_save, local_irq_restore, local_irq_unmask,
@@ -8,8 +8,8 @@ pub use arch_asynchronous::{
 
 use crate::bsp;
 use crate::exception::{interface, null_irq_manager};
-use crate::sync::{InitStateLock, IRQSafeNullLock};
 use crate::sync::interface::ReadWriteEx;
+use crate::sync::InitStateLock;
 
 // SPDX-License-Identifier: MIT
 #[cfg(target_arch = "aarch64")]
@@ -19,7 +19,10 @@ mod arch_asynchronous;
 pub type IRQNumber = bsp::exception::asynchronous::IRQNumber;
 
 #[derive(Copy, Clone)]
-pub struct IRQHandlerDescriptor<T> where T: Copy {
+pub struct IRQHandlerDescriptor<T>
+where
+    T: Copy,
+{
     number: T,
     name: &'static str,
     handler: &'static (dyn interface::IRQHandler + Sync),
@@ -39,7 +42,10 @@ static CURRENT_IRQ_MANAGER: InitStateLock<
     &'static (dyn interface::IRQManager<IRQNumberType = IRQNumber> + Sync),
 > = InitStateLock::new(&null_irq_manager::NULL_IRQ_MANAGER);
 
-impl<T> IRQHandlerDescriptor<T> where T: Copy {
+impl<T> IRQHandlerDescriptor<T>
+where
+    T: Copy,
+{
     pub const fn new(
         number: T,
         name: &'static str,

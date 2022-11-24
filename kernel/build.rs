@@ -1,12 +1,17 @@
-use std::{env, fs, process};
 use std::io::Write;
+use std::{env, fs, process};
 
 fn main() {
     let outdir = env::var("OUT_DIR").unwrap();
     let outfile = format!("{}/timestamp.txt", outdir);
 
     let mut fh = fs::File::create(&outfile).unwrap();
-    write!(fh, "{}", chrono::Local::now().format("%Y-%m-%d %H:%M:%S %z")).ok();
+    write!(
+        fh,
+        "{}",
+        chrono::Local::now().format("%Y-%m-%d %H:%M:%S %z")
+    )
+    .ok();
 
     let ld_script_path = match env::var("LD_SCRIPT_PATH") {
         Ok(var) => var,

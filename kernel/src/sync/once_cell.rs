@@ -38,6 +38,7 @@ impl<T> Deref for OnceCell<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        self.get().unwrap_or_else(|| panic!("OnceCell not initialized"))
+        self.get()
+            .unwrap_or_else(|| panic!("OnceCell not initialized"))
     }
 }

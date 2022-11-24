@@ -19,8 +19,5 @@ pub trait IRQManager {
 
     /// Handles pending interrupts. This is called directly from the CPU's IRQ exception vector.
     /// This function cannot be preempted by other interrupts.
-    fn handle_pending_irqs<'cs>(
-        &'cs self,
-        cs: &CriticalSection<'cs>,
-    );
+    fn handle_pending_irqs<'cs>(&'cs self, cs: &CriticalSection<'cs>);
 }

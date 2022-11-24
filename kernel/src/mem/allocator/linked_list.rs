@@ -4,11 +4,11 @@ use core::alloc::{GlobalAlloc, Layout};
 use core::intrinsics::unlikely;
 use core::mem;
 
-use crate::{info, warn};
 use crate::mem::allocator::align_up;
 use crate::mem::vm::paging::VirtualAddress;
 use crate::sync::interface::Mutex;
 use crate::sync::IRQSafeNullLock;
+use crate::warn;
 
 //--------------------------------------------------------------------------------------------------
 // Public definitions
@@ -39,7 +39,10 @@ impl LinkedListAllocator {
 
         const MIN_SIZE: usize = LIST_NODE_SIZE;
         if unlikely(size < MIN_SIZE) {
-            warn!("region too small to fit a marker (at {:#x}): {} < {}", addr.0, size, MIN_SIZE);
+            warn!(
+                "region too small to fit a marker (at {:#x}): {} < {}",
+                addr.0, size, MIN_SIZE
+            );
             return;
         }
 
@@ -96,15 +99,11 @@ impl LinkedListAllocator {
 
 unsafe impl GlobalAlloc for IRQSafeNullLock<LinkedListAllocator> {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        self.lock(|alloc| {
-            alloc.alloc(layout)
-        })
+        self.lock(|alloc| alloc.alloc(layout))
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
-        self.lock(|alloc| {
-            alloc.dealloc(ptr, layout)
-        })
+        self.lock(|alloc| alloc.dealloc(ptr, layout))
     }
 }
 
@@ -145,10 +144,7 @@ struct ListNode {
 impl ListNode {
     /// Creates a new node with the given size.
     const fn new(size: usize) -> Self {
-        Self {
-            next: None,
-            size,
-        }
+        Self { next: None, size }
     }
 
     /// Returns the start address of this memory region.

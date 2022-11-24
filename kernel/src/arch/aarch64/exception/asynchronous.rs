@@ -85,6 +85,9 @@ impl DaifField for FIQ {
     }
 }
 
-fn is_masked<T>() -> bool where T: DaifField {
+fn is_masked<T>() -> bool
+where
+    T: DaifField,
+{
     DAIF.is_set(T::daif_field())
 }

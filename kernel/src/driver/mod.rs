@@ -3,11 +3,11 @@ pub use descriptor::*;
 pub use manager::*;
 
 mod common;
-mod manager;
 mod descriptor;
+mod manager;
 
-pub mod uart;
 pub mod interrupt;
+pub mod uart;
 
 pub mod interface {
     use core::fmt;
@@ -24,7 +24,10 @@ pub mod interface {
         fn compatible(&self) -> &'static str;
 
         /// Called by the kernel to bring up the device.
-        unsafe fn init(&'static self, _irq_number: Option<&Self::IRQNumberType>) -> Result<(), &'static str> {
+        unsafe fn init(
+            &'static self,
+            _irq_number: Option<&Self::IRQNumberType>,
+        ) -> Result<(), &'static str> {
             Ok(())
         }
     }
@@ -44,5 +47,5 @@ pub enum DriverLoadOrder {
     Normal,
 
     /// The driver is not loaded at boot, and must be loaded manually.
-    Manual
+    Manual,
 }

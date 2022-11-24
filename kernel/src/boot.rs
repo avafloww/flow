@@ -2,18 +2,18 @@
 use alloc::boxed::Box;
 use limine::LimineBootInfoRequest;
 
-use crate::{bsp, cpu, driver, EARLY_INIT_COMPLETE, exception, info, mem, println};
-use crate::mem::{MemoryManager, virtual_memory_manager};
+use crate::mem::{virtual_memory_manager, MemoryManager};
+use crate::{bsp, cpu, driver, exception, info, mem, println, EARLY_INIT_COMPLETE};
 
 static BOOTLOADER_INFO: LimineBootInfoRequest = LimineBootInfoRequest::new(0);
 
 /// # Safety
 /// - MMU & caching must be initialised first.
-pub unsafe fn kernel_init(base_sp: usize) -> ! {
+pub unsafe fn kernel_init() -> ! {
     // set up exception handling, since we're about to invalidate the lower half of the address space
     exception::init();
 
-    virtual_memory_manager().init(base_sp);
+    virtual_memory_manager().init();
 
     // init the bsp drivers
     if let Err(x) = bsp::driver::init() {
@@ -40,7 +40,8 @@ pub unsafe fn kernel_init(base_sp: usize) -> ! {
 }
 
 fn kernel_main() -> ! {
-    println!(r#"
+    println!(
+        r#"
     ______
    / __/ /___ _      __
   / /_/ / __ \ | /| / /
@@ -48,8 +49,8 @@ fn kernel_main() -> ! {
 /_/ /_/\____/|__/|__/
 
 flow v{}, built at {}"#,
-             env!("CARGO_PKG_VERSION"),
-             include_str!(concat!(env!("OUT_DIR"), "/timestamp.txt"))
+        env!("CARGO_PKG_VERSION"),
+        include_str!(concat!(env!("OUT_DIR"), "/timestamp.txt"))
     );
     if let Some(bootinfo) = BOOTLOADER_INFO.get_response().get() {
         println!(

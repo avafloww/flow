@@ -73,14 +73,14 @@
 //!           - 00..15 SGIs
 //!           - 16..31 PPIs
 
-use crate::{bsp, cpu, driver, exception, sync};
+use crate::{cpu, driver, exception};
 //------------------------------------------------------------------------------
 // OS Interface Code
 //------------------------------------------------------------------------------
 use crate::driver::{BoundedUsize, DriverLoadOrder};
 use crate::exception::interface;
-use crate::sync::{InitStateLock, IRQSafeNullLock};
 use crate::sync::interface::ReadWriteEx;
+use crate::sync::InitStateLock;
 
 mod gicc;
 mod gicd;
@@ -146,7 +146,10 @@ impl driver::interface::DeviceDriver for GICv2 {
         Self::COMPATIBLE
     }
 
-    unsafe fn init(&'static self, _unused: Option<&Self::IRQNumberType>) -> Result<(), &'static str> {
+    unsafe fn init(
+        &'static self,
+        _unused: Option<&Self::IRQNumberType>,
+    ) -> Result<(), &'static str> {
         if cpu::BOOT_CORE_ID == cpu::core_id() {
             self.gicd.boot_core_init();
         }
@@ -182,10 +185,7 @@ impl interface::IRQManager for GICv2 {
         self.gicd.enable(irq_number);
     }
 
-    fn handle_pending_irqs<'cs>(
-        &'cs self,
-        ic: &exception::asynchronous::CriticalSection<'cs>,
-    ) {
+    fn handle_pending_irqs<'cs>(&'cs self, ic: &exception::asynchronous::CriticalSection<'cs>) {
         // Extract the highest priority pending IRQ number from the Interrupt Acknowledge Register
         // (IAR).
         let irq_number = self.gicc.pending_irq_number(ic);

@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: MIT
 use core::cell::UnsafeCell;
 
-use crate::{EARLY_INIT_COMPLETE, exception};
-use crate::sync::interface::{Mutex, ReadWriteEx};
+use crate::sync::interface::ReadWriteEx;
+use crate::{exception, EARLY_INIT_COMPLETE};
 
-pub struct InitStateLock<T> where T: ?Sized {
+pub struct InitStateLock<T>
+where
+    T: ?Sized,
+{
     data: UnsafeCell<T>,
 }
 

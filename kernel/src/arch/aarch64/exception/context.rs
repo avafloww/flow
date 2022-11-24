@@ -29,30 +29,49 @@ pub struct ExceptionContext {
     esr_el1: EsrEL1,
 }
 
-
 impl fmt::Display for SpsrEL1 {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         writeln!(f, "SPSR_EL1: {:#010x}", self.0.get())?;
 
-        let to_flag_str = |x| -> _ { if x { "*" } else { " " } };
+        let to_flag_str = |x| -> _ {
+            if x {
+                "*"
+            } else {
+                " "
+            }
+        };
 
-        writeln!(f, "    Flags: (N)egative[{}] (Z)ero[{}] (C)arry[{}] O(V)erflow[{}]",
-                 to_flag_str(self.0.is_set(SPSR_EL1::N)),
-                 to_flag_str(self.0.is_set(SPSR_EL1::Z)),
-                 to_flag_str(self.0.is_set(SPSR_EL1::C)),
-                 to_flag_str(self.0.is_set(SPSR_EL1::V))
+        writeln!(
+            f,
+            "    Flags: (N)egative[{}] (Z)ero[{}] (C)arry[{}] O(V)erflow[{}]",
+            to_flag_str(self.0.is_set(SPSR_EL1::N)),
+            to_flag_str(self.0.is_set(SPSR_EL1::Z)),
+            to_flag_str(self.0.is_set(SPSR_EL1::C)),
+            to_flag_str(self.0.is_set(SPSR_EL1::V))
         )?;
 
-        let to_mask_str = |x| -> _ { if x { "M" } else { "U" } };
+        let to_mask_str = |x| -> _ {
+            if x {
+                "M"
+            } else {
+                "U"
+            }
+        };
 
-        writeln!(f, "    Exception state: (D)ebug[{}] (A)Serror[{}] (I)RQ[{}] (F)IQ[{}]",
-                 to_mask_str(self.0.is_set(SPSR_EL1::D)),
-                 to_mask_str(self.0.is_set(SPSR_EL1::A)),
-                 to_mask_str(self.0.is_set(SPSR_EL1::I)),
-                 to_mask_str(self.0.is_set(SPSR_EL1::F))
+        writeln!(
+            f,
+            "    Exception state: (D)ebug[{}] (A)Serror[{}] (I)RQ[{}] (F)IQ[{}]",
+            to_mask_str(self.0.is_set(SPSR_EL1::D)),
+            to_mask_str(self.0.is_set(SPSR_EL1::A)),
+            to_mask_str(self.0.is_set(SPSR_EL1::I)),
+            to_mask_str(self.0.is_set(SPSR_EL1::F))
         )?;
 
-        write!(f, "    (IL)legalExecState[{}]", to_flag_str(self.0.is_set(SPSR_EL1::IL)))
+        write!(
+            f,
+            "    (IL)legalExecState[{}]",
+            to_flag_str(self.0.is_set(SPSR_EL1::IL))
+        )
     }
 }
 
@@ -70,8 +89,17 @@ impl fmt::Display for EsrEL1 {
             Some(ESR_EL1::EC::Value::DataAbortCurrentEL) => "Data abort (current EL)",
             _ => "Unknown",
         };
-        writeln!(f, "    Exception class: {:#x} - {}", self.0.read(ESR_EL1::EC), ec_desc)?;
-        write!(f, "    Instruction Specific Syndrome (ISS): {:#x}", self.0.read(ESR_EL1::ISS))
+        writeln!(
+            f,
+            "    Exception class: {:#x} - {}",
+            self.0.read(ESR_EL1::EC),
+            ec_desc
+        )?;
+        write!(
+            f,
+            "    Instruction Specific Syndrome (ISS): {:#x}",
+            self.0.read(ESR_EL1::ISS)
+        )
     }
 }
 
@@ -115,7 +143,11 @@ impl fmt::Display for ExceptionContext {
         write!(f, "    ")?;
 
         let alternating = |x| -> _ {
-            if x % 2 == 0 { "    " } else { "\n    " }
+            if x % 2 == 0 {
+                "    "
+            } else {
+                "\n    "
+            }
         };
 
         for (i, reg) in self.gpr.iter().enumerate() {

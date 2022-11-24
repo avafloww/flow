@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
-use core::arch::{asm, global_asm};
-use core::num::NonZeroU64;
+use core::arch::asm;
 
+use crate::mem;
 use aarch64_cpu::asm;
 use aarch64_cpu::registers::{CNTFRQ_EL0, CNTPCT_EL0, MPIDR_EL1};
-use tock_registers::interfaces::{Readable, Writeable};
-use crate::mem;
+use tock_registers::interfaces::Readable;
 
-use crate::time::{KERNEL_TIMER_DATA, KernelTimerData};
+use crate::time::{KernelTimerData, KERNEL_TIMER_DATA};
 
 pub static BOOT_CORE_ID: u64 = 0;
 
@@ -18,23 +17,17 @@ pub static BOOT_CORE_ID: u64 = 0;
 /// Expected state at start:
 /// - Current execution level is EL1.
 /// - MMU enabled, and kernel loaded into the higher half of the address space.
-/// - SP_EL1 set to the top of the kernel stack (the start of kernel code).
 /// - BSS is zeroed.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     // re-enter EL1h, since Limine drops us in EL1t
     asm!("msr spsel, #1");
 
-    let base_sp: usize;
-
-    // add the direct map offset to the current stack pointer, then load it back
-    // we'll use this later to move the stack after vmm init
+    // add the direct map offset to the current stack pointer
     asm!(
         "mov x9, {dm_offset}",
         "add sp, sp, x9",
-        "mov {base_sp}, sp",
         dm_offset = in(reg) mem::direct_map_virt_offset(),
-        base_sp = out(reg) base_sp,
     );
 
     // Only proceed on the boot core for now
@@ -45,13 +38,10 @@ pub unsafe extern "C" fn _start() -> ! {
     }
 
     // set up some kernel constants
-    KERNEL_TIMER_DATA.set(KernelTimerData::new(
-        CNTFRQ_EL0.get(),
-        CNTPCT_EL0.get(),
-    ));
+    KERNEL_TIMER_DATA.set(KernelTimerData::new(CNTFRQ_EL0.get(), CNTPCT_EL0.get()));
 
     // Start the rest of the kernel init process
-    crate::boot::kernel_init(base_sp)
+    crate::boot::kernel_init()
 }
 
 #[inline(always)]
@@ -67,7 +57,10 @@ pub fn nop() {
 }
 
 #[inline(always)]
-pub fn core_id<T>() -> T where T: From<u8> {
+pub fn core_id<T>() -> T
+where
+    T: From<u8>,
+{
     const CORE_MASK: u64 = 0b11;
     T::from((MPIDR_EL1.get() & CORE_MASK) as u8)
 }

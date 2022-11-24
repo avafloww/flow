@@ -4,7 +4,10 @@ use core::cell::UnsafeCell;
 use crate::exception;
 use crate::sync::interface::{Mutex, ReadWriteEx};
 
-pub struct IRQSafeNullLock<T> where T: ?Sized {
+pub struct IRQSafeNullLock<T>
+where
+    T: ?Sized,
+{
     data: UnsafeCell<T>,
 }
 

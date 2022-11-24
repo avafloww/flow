@@ -1,16 +1,11 @@
 // SPDX-License-Identifier: MIT
 
-use core::alloc::{GlobalAlloc, Layout};
 use core::intrinsics::unlikely;
 use core::mem;
-use core::sync::atomic::AtomicBool;
 
-use crate::info;
 use crate::mem::allocator::align_up;
 use crate::mem::direct_map_virt_offset;
-use crate::mem::vm::paging::{PAGE_SIZE, PhysicalAddress, VirtualAddress};
-use crate::sync::interface::Mutex;
-use crate::sync::IRQSafeNullLock;
+use crate::mem::vm::paging::{PhysicalAddress, VirtualAddress, PAGE_SIZE};
 
 //--------------------------------------------------------------------------------------------------
 // Public definitions
@@ -50,7 +45,8 @@ impl PhysicalPageAllocator {
     /// Finds a free region with the given size, removes it from the list, and returns
     /// its start physical address from the direct-map.
     pub fn allocate(&mut self, size: usize) -> Option<PhysicalAddress> {
-        self.find_region(size).map(|alloc_start| PhysicalAddress(alloc_start.0 - direct_map_virt_offset()))
+        self.find_region(size)
+            .map(|alloc_start| PhysicalAddress(alloc_start.0 - direct_map_virt_offset()))
     }
 
     /// Finds a free region with the given size and alignment, removes it from the list, and returns
@@ -98,10 +94,6 @@ impl PhysicalPageAllocator {
 
         Ok(alloc_start)
     }
-
-    fn direct_map_virt_to_phys(&self, virt_addr: VirtualAddress) -> PhysicalAddress {
-        PhysicalAddress(virt_addr.0 - direct_map_virt_offset())
-    }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -119,10 +111,7 @@ struct ListNode {
 impl ListNode {
     /// Creates a new node with the given size.
     const fn new(size: usize) -> Self {
-        Self {
-            next: None,
-            size,
-        }
+        Self { next: None, size }
     }
 
     /// Returns the start address of this memory region.
@@ -133,19 +122,5 @@ impl ListNode {
     /// Returns the end address of this memory region.
     fn end_addr(&self) -> usize {
         self.start_addr() + self.size
-    }
-}
-
-impl PhysicalPageAllocator {
-    /// Adjusts the given layout so that the resulting allocated region can also store a ListNode.
-    ///
-    /// Returns the adjusted size and alignment.
-    fn size_align(layout: Layout) -> (usize, usize) {
-        let layout = layout
-            .align_to(mem::align_of::<ListNode>())
-            .expect("adjusting alignment failed")
-            .pad_to_align();
-        let size = layout.size().max(mem::size_of::<ListNode>());
-        (size, layout.align())
     }
 }

@@ -18,8 +18,8 @@ use crate::{console, cpu, driver, exception, sync::IRQSafeNullLock};
 //------------------------------------------------------------------------------
 // OS Interface Code
 //------------------------------------------------------------------------------
-use crate::driver::{DriverLoadOrder, MMIODerefWrapper};
 use crate::driver::interrupt::gicv2::IRQNumber;
+use crate::driver::{DriverLoadOrder, MMIODerefWrapper};
 use crate::exception::asynchronous::{irq_manager, IRQHandlerDescriptor};
 use crate::sync::interface::Mutex;
 
@@ -303,7 +303,9 @@ impl PL011UartInner {
         self.registers.IFLS.write(IFLS::RXIFLSEL::OneEigth);
 
         // Enable RX IRQ + RX timeout IRQ.
-        self.registers.IMSC.write(IMSC::RXIM::Enabled + IMSC::RTIM::Enabled);
+        self.registers
+            .IMSC
+            .write(IMSC::RXIM::Enabled + IMSC::RTIM::Enabled);
 
         // Turn the UART on.
         self.registers
@@ -412,13 +414,14 @@ impl driver::interface::DeviceDriver for PL011Uart {
         Self::COMPATIBLE
     }
 
-    unsafe fn init(&'static self, irq_number: Option<&Self::IRQNumberType>) -> Result<(), &'static str> {
+    unsafe fn init(
+        &'static self,
+        irq_number: Option<&Self::IRQNumberType>,
+    ) -> Result<(), &'static str> {
         self.inner.lock(|inner| inner.init());
 
         // Enable IRQs.
-        let descriptor = IRQHandlerDescriptor::new(
-            *irq_number.unwrap(), Self::COMPATIBLE, self
-        );
+        let descriptor = IRQHandlerDescriptor::new(*irq_number.unwrap(), Self::COMPATIBLE, self);
 
         irq_manager().register_handler(descriptor)?;
         irq_manager().enable(irq_number.unwrap());

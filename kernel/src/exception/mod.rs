@@ -8,4 +8,3 @@ mod null_irq_manager;
 
 pub mod asynchronous;
 pub mod interface;
-
