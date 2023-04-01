@@ -1,0 +1,12 @@
+[submodule "deps/getrandom"]
+	path = deps/getrandom
+	url = https://github.com/rust-random/getrandom.git
+[submodule "deps/time"]
+	path = deps/time
+	url = https://github.com/time-rs/time.git
+[submodule "deps/memchr"]
+	path = deps/memchr
+	url = https://github.com/BurntSushi/memchr
+[submodule "deps/rust-phf"]
+	path = deps/rust-phf
+	url = https://github.com/avafloww/rust-phf

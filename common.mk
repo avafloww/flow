@@ -21,6 +21,7 @@ endef
 BSP ?= qemu
 
 ifeq ($(BSP),qemu)
+	TARGET_INIT = aarch64-unknown-flow
 	TARGET = aarch64-unknown-none
 	TARGET_SIMPLE=aarch64
 	QEMU_BINARY = qemu-system-aarch64

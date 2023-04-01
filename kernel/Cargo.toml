@@ -11,6 +11,7 @@ tock-registers = { version = "^0.8", default-features = false, features = ["regi
 critical-section = { version = "1.0", features = ["restore-state-u64"] }
 bitflags = "1.3.2"
 limine = "^0.1.9"
+object = { version = "0.30.0", default-features = false, features = ["read_core", "elf", "unaligned"] }
 
 [features]
 default = []

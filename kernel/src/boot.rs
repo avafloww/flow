@@ -3,7 +3,7 @@ use alloc::boxed::Box;
 use limine::LimineBootInfoRequest;
 
 use crate::mem::{virtual_memory_manager, MemoryManager};
-use crate::{bsp, cpu, driver, exception, info, mem, println, EARLY_INIT_COMPLETE};
+use crate::{bsp, cpu, driver, exception, exec, info, mem, println, EARLY_INIT_COMPLETE};
 
 static BOOTLOADER_INFO: LimineBootInfoRequest = LimineBootInfoRequest::new(0);
 
@@ -75,6 +75,9 @@ flow v{}, built at {}"#,
     info!("x = {}", x);
     *x = 43;
     info!("x = {}", x);
+
+    // exec::read_test_executable();
+    exec::load_test_executable();
 
     info!("Entering infinite idle loop.");
     cpu::wait_forever()

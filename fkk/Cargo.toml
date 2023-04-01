@@ -1,0 +1,7 @@
+[package]
+name = "fkk"
+description = "the Flow Kernel Kit (FKK, or FKKit), a set of utilities for use within the Flow kernelspace"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]

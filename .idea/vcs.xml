@@ -2,5 +2,14 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/boa" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/compiler-builtins" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/compiler-builtins/libm" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/getrandom" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/memchr" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/regress" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/rust-phf" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/time" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/wasmi" vcs="Git" />
   </component>
 </project>

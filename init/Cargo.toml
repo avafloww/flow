@@ -1,0 +1,11 @@
+[package]
+name = "flow-init"
+version = "0.1.0"
+edition = "2021"
+
+#[dependencies]
+#boa_engine = { path = "../deps/boa/boa_engine" }
+#
+#[patch.crates-io]
+#getrandom = { path = "../deps/getrandom" }
+#time = { version = "0.1", path = "../deps/time" }

@@ -63,11 +63,28 @@ pub trait MemoryManager {
     /// If this operation fails, the kernel will panic.
     unsafe fn init(&self);
 
+    /// Allocates memory to load a process.
+    /// If the allocation fails, the kernel will panic.
+    ///
+    /// Returns a tuple containing:
+    /// - The physical address of the allocation
+    /// - The direct-map virtual address of the allocation (for kernel use)
+    /// - The size of the allocation
+    fn process_alloc(&self, size: usize) -> (PhysicalAddress, VirtualAddress, usize);
+
     /// Attempts to allocate a block of memory from the kernel heap.
     /// Upon success, a tuple is returned containing the virtual address of
     /// the allocated block, as well as its size.
     /// If allocation fails, the kernel will panic.
     fn kernel_alloc(&self, size: usize) -> (VirtualAddress, usize);
+
+    /// Creates new root page tables in the lower half of the virtual address space.
+    /// This is used for user processes.
+    ///
+    /// Returns a tuple containing the address space ID and the new page table.
+    fn new_address_space(&self) -> (u16, RootPageTable);
+
+    fn free_address_space(&self, asid: u16) -> Result<(), &'static str>;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -103,8 +120,20 @@ impl MemoryManager for VirtualMemoryManager {
         self.inner.lock(|inner| inner.init())
     }
 
+    fn process_alloc(&self, size: usize) -> (PhysicalAddress, VirtualAddress, usize) {
+        self.inner.lock(|inner| inner.process_alloc(size))
+    }
+
     fn kernel_alloc(&self, size: usize) -> (VirtualAddress, usize) {
         self.inner.lock(|inner| inner.kernel_alloc(size))
+    }
+
+    fn new_address_space(&self) -> (u16, RootPageTable) {
+        self.inner.lock(|inner| inner.new_address_space())
+    }
+
+    fn free_address_space(&self, asid: u16) -> Result<(), &'static str> {
+        self.inner.lock(|inner| inner.free_address_space(asid))
     }
 }
 
@@ -163,6 +192,7 @@ struct VirtualMemoryManagerInner {
     physical_allocator: PhysicalPageAllocator,
     kernel_page_table: OnceCell<IRQSafeNullLock<RootPageTable>>,
     use_kernel_heap_addresses: bool,
+    next_asid: u16,
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -181,6 +211,7 @@ impl VirtualMemoryManagerInner {
             // we can't allocate the page table yet, so we use OnceCell here
             kernel_page_table: OnceCell::new(),
             use_kernel_heap_addresses: false,
+            next_asid: 1,
         }
     }
 
@@ -353,7 +384,12 @@ impl VirtualMemoryManagerInner {
                     + TCR_EL1::EPD1::EnableTTBR1Walks
                     + TCR_EL1::A1::TTBR0
                     + TCR_EL1::T1SZ.val(16)
-                    + TCR_EL1::EPD0::DisableTTBR0Walks,
+                    // + TCR_EL1::EPD0::DisableTTBR0Walks,
+                    + TCR_EL1::SH0::Outer
+                    + TCR_EL1::ORGN0::WriteBack_ReadAlloc_WriteAlloc_Cacheable
+                    + TCR_EL1::IRGN0::WriteBack_ReadAlloc_WriteAlloc_Cacheable
+                    + TCR_EL1::EPD0::EnableTTBR0Walks
+                    + TCR_EL1::T0SZ.val(16),
             );
         });
 
@@ -413,6 +449,35 @@ impl VirtualMemoryManagerInner {
 
         // activate the new page table
         kernel_table.activate();
+    }
+
+    /// Creates new root page tables in the lower half of the virtual address space.
+    /// This is used for user processes.
+    ///
+    /// Returns a tuple containing the address space ID and the new page table.
+    pub fn new_address_space(&mut self) -> (u16, RootPageTable) {
+        let asid = self.next_asid as usize;
+        let table = RootPageTable::new(asid, VaRange::Lower);
+        self.next_asid += 1;
+        (asid as u16, table)
+    }
+
+    pub fn free_address_space(&mut self, asid: u16) -> Result<(), &'static str> {
+        // todo
+        Ok(())
+    }
+
+    /// Allocates memory to load a process.
+    /// If the allocation fails, the kernel will panic.
+    ///
+    /// Returns a tuple containing:
+    /// - The physical address of the allocation
+    /// - The direct-map virtual address of the allocation (for kernel use)
+    /// - The size of the allocation
+    pub fn process_alloc(&mut self, size: usize) -> (PhysicalAddress, VirtualAddress, usize) {
+        // Safe because we're not allocating from the kernel heap
+        let (alloc_start, alloc_size) = unsafe { self.kernel_alloc_unchecked(size) };
+        (alloc_start, alloc_start.into(), alloc_size)
     }
 
     /// Allocates memory from the kernel's physical page allocator.

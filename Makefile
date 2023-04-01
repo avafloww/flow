@@ -10,18 +10,21 @@
 
 include ./common.mk
 
-.PHONY: clean kernel iso qemu qemu_wait qemu_dump_dtb gdb all
+.PHONY: clean kernel init iso qemu qemu_wait qemu_dump_dtb gdb all
 
-all: clean kernel iso
+all: clean kernel init iso
 
 kernel:
 	@$(MAKE) -C kernel -f kernel.mk
+
+init:
+	@$(MAKE) -C init -f init.mk
 
 target/limine:
 	git clone "https://github.com/limine-bootloader/limine.git" --branch v4.x-branch-binary --depth=1 target/limine
 	cd target/limine && make
 
-iso: target/limine kernel
+iso: target/limine kernel #init
 	$(call color_header, "Building ISO")
 	@rm -f $(shell pwd)/target/flow.iso
 	@rm -rf $(shell pwd)/target/isoroot

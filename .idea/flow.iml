@@ -7,10 +7,36 @@
       <sourceFolder url="file://$MODULE_DIR$/mem/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/loader/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/sync/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/init/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/fkk/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/boa/boa_ast/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/boa/boa_cli/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/boa/boa_engine/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/boa/boa_engine/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/boa/boa_examples/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/boa/boa_gc/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/boa/boa_interner/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/boa/boa_macros/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/boa/boa_macros/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/boa/boa_parser/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/boa/boa_profiler/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/boa/boa_tester/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/boa/boa_unicode/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/boa/boa_wasm/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/compiler-builtins/crates/panic-handler/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/compiler-builtins/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/compiler-builtins/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/compiler-builtins/testcrate/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/compiler-builtins/testcrate/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deps/compiler-builtins/testcrate/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/loader/target" />
       <excludeFolder url="file://$MODULE_DIR$/kernel/target" />
       <excludeFolder url="file://$MODULE_DIR$/mem/target" />
       <excludeFolder url="file://$MODULE_DIR$/sync/target" />
+      <excludeFolder url="file://$MODULE_DIR$/init/target" />
+      <excludeFolder url="file://$MODULE_DIR$/fkk/target" />
+      <excludeFolder url="file://$MODULE_DIR$/deps/boa/target" />
+      <excludeFolder url="file://$MODULE_DIR$/deps/compiler-builtins/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
